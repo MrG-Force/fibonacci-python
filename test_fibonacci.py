@@ -15,6 +15,8 @@ class TestFibonacci(unittest.TestCase):
     def test_find_closest_fibonacci(self):
         self.assertEquals(fib.find_closest_fibonacci(
             12), 8, "Closest number to 12 in the fibonacci sequence is at the 8th position -> 13")
+        self.assertEquals(fib.find_closest_fibonacci(
+            4), 5, "Closest number to 4 in the fibonacci sequence is either the 5th -> 3 or the 6th position -> 5 | 5 this function chooses the 5th")
 
 
 if __name__ == '__main__':
