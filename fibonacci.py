@@ -3,17 +3,15 @@ Challenge:
 1) Given n, get the nth number in the fibonacci sequence
 2) Given a number F, print out whether it's a fibonacci number and what the closest index n in the 
 fibonacci sequence is.
-"Binet's formula provides a proof that a positive integer x is a Fibonacci number if and only if at least one of 
-5 * x * n + 4 or 5 * x * x - 4 is a perfect square". 
-Source:
-https://en.wikipedia.org/wiki/Fibonacci_number#Recognizing_Fibonacci_numbers
 '''
 import argparse
 import textwrap
+import math
 
 
 def main():
     args = get_args()
+    print(type(args))
     if args.find:
         try:
             if args.Number == 0:
@@ -28,58 +26,77 @@ def main():
         print(f"{args.Number}th Fibonacci: {get_nth_fibonacci(args.Number)}")
 
     else:
-        result = is_fibonacci(args.Number)
-        if result[0]:
+        if is_fibonacci(args.Number):
+            position = find_fibonacci_position(args.Number)[1]
             if args.verbose:
                 print(
-                    f"{args.Number} is at the {result[1]}{get_ord_sufx(result[1])} position in the Fibonacci sequence.")
+                    f"{args.Number} is at the {position}{get_ord_sufx(position)} position in the Fibonacci sequence.")
             else:
                 print(
-                    f"{result[0]}, ({result[1]}{get_ord_sufx(result[1])}: {args.Number})")
+                    f"True, ({position}{get_ord_sufx(position)}: {args.Number})")
         else:
-            closest = find_closest_fibonacci(args.Number)
+            closest = find_fibonacci_position(args.Number)
             if args.verbose:
                 print(
                     f"{args.Number} is not in the Fibonacci sequence," +
                     f" the closest Fibonacci number is {closest[0]} at the {closest[1]}{get_ord_sufx(closest[1])} index.")
             else:
                 print(
-                    f"{result[0]}, ({closest[1]}{get_ord_sufx(closest[1])}: {closest[0]})")
+                    f"False, ({closest[1]}{get_ord_sufx(closest[1])}: {closest[0]})")
 
 
-# 1)
-def get_nth_fibonacci(n):
+def get_nth_fibonacci(n: int) -> int:
+    """Return the number at the nth position in the Fibonacci sequence.
+
+    Args:
+        n (int): The position(1-based) in the sequence
+
+    Returns:
+        int: A Fibonacci number
+    """
     gen = generate_fibonacci()
     # discard range(n - 1) fibonacci numbers
     for _ in range(n - 1):
         next(gen)
     return next(gen)[0]
 
-# 2)
+
+def is_fibonacci(n: int) -> bool:
+    """Check whether n is a Fibonacci number or not applying the Binet's formula.
+
+    Args:
+        n (int): The number to check
+
+    Returns:
+        bool: :)
+    """
+    a = 5 * (n ** 2) + 4
+    int_sqrt_a = int(math.sqrt(a))
+    int_a = int_sqrt_a ** 2
+
+    b = 5 * (n ** 2) - 4
+    int_sqrt_b = int(math.sqrt(b))
+    int_b = int_sqrt_b ** 2
+
+    return int_a == a or int_b == b
 
 
-def is_fibonacci(n):
-    gen = generate_fibonacci()
+def find_fibonacci_position(n: int) -> tuple:
+    """Given n, find the position in the Fibonacci sequence or the closest Fibonacci number
 
-    while True:
-        fib = next(gen)
-        fib_num = fib[0]
-        fib_indx = fib[1]
+    Args:
+        n (int): The number to search
 
-        if n == fib_num:
-            return (True, fib_indx)
-        if n < fib_num:
-            return (False, -1)
-
-
-def find_closest_fibonacci(n):
+    Returns:
+        tuple: ([0]: Closest Fibonacci number, [1]: its position in the sequence)
+    """
     gen = generate_fibonacci()
     fib_last = next(gen)
 
     while fib_last[0] < n:
         fib_prev = fib_last
         fib_last = next(gen)
-
+    # find the closest one
     difference_prev = abs(fib_prev[0] - n)
     difference_last = abs(fib_last[0] - n)
 
@@ -91,6 +108,11 @@ def find_closest_fibonacci(n):
 # --- Helper functions ---
 
 def generate_fibonacci() -> tuple:
+    """Generate the Fibonacci sequence
+
+    Yields:
+        Iterator[tuple]: ([0]: The next Fibonacci number, [1]: its position in the sequence)
+    """
     # Position in the sequence
     pos = 1
     # First two fibonacci numbers
@@ -109,13 +131,19 @@ def generate_fibonacci() -> tuple:
         fibn_1 = next
 
 
-def check_positive(number):
+def check_positive(number: str) -> int:
+    """ A helper function to validate user input. """
     if int(number) < 0:
         raise argparse.ArgumentTypeError("Not a valid int >= 0")
     return int(number)
 
 
 def get_args():
+    """Parse the command line arguments.
+
+    Returns:
+        class 'argparse.Namespace': An object containing the parsed and validated command line arguments.
+    """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=textwrap.dedent('''\
             This program has two main functionalities:
@@ -134,7 +162,15 @@ def get_args():
     return parser.parse_args()
 
 
-def get_ord_sufx(number):
+def get_ord_sufx(number: int) -> str:
+    """Get the suffix for ordinal numbers. E. g.: 'th' for '12th', 'st' for '1st'
+
+    Args:
+        number (int): 
+
+    Returns:
+        str: 'th', 'st', 'nd' or 'rd'
+    """
     teen = number % 100
     if teen in [11, 12, 13]:
         return "th"
